@@ -1,106 +1,11 @@
 const { app, BrowserWindow, ipcMain, screen } = require('electron');
 const path = require('path');
-const http = require('http');
-const url = require('url');
 const os = require('os');
 const fs = require('fs');
-const { spawn } = require('child_process');
+const server = require('./server');
 
 let mainWindow;
 let httpServer;
-let agentStates = new Map(); // sessionId -> state
-
-// 포트 충돌 방지: 사용 가능한 포트 찾기
-async function findAvailablePort(startPort = 3456) {
-  return new Promise((resolve) => {
-    const server = http.createServer();
-    server.listen(startPort, () => {
-      const port = server.address().port;
-      server.close(() => resolve(port));
-    });
-    server.on('error', () => {
-      // 포트가 사용 중이면 다음 포트 시도
-      resolve(findAvailablePort(startPort + 1));
-    });
-  });
-}
-
-// HTTP 서버 생성
-async function createHttpServer() {
-  const port = await findAvailablePort(3456);
-  console.log(`HTTP 서버 시작: 포트 ${port}`);
-
-  httpServer = http.createServer((req, res) => {
-    const parsedUrl = url.parse(req.url, true);
-
-    // CORS 헤더
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-    if (req.method === 'OPTIONS') {
-      res.writeHead(200);
-      res.end();
-      return;
-    }
-
-    // 상태 업데이트 엔드포인트
-    if (req.method === 'POST' && parsedUrl.pathname === '/agent/status') {
-      let body = '';
-      req.on('data', chunk => body += chunk);
-      req.on('end', () => {
-        try {
-          if (!body || body.trim().length === 0) {
-            res.writeHead(200); res.end(); return;
-          }
-
-          const data = JSON.parse(body);
-          // 최신 Claude CLI 필드명 지원
-          const sessionId = data.session_id || data.sessionId;
-          const state = data.hook_event_name || data.state;
-          // PostToolUseFailure를 Error로 매핑
-          const mappedState = state === 'PostToolUseFailure' ? 'Error' : state;
-          // 메시지 우선순위: 어시스턴트 메시지 > 프롬프트 > 도구명 > 일반 메시지
-          let message = data.last_assistant_message || data.prompt || data.tool_name || data.message || "";
-
-          // 메시지 길이 제한
-          if (message.length > 200) message = message.substring(0, 197) + "...";
-
-          if (sessionId && mappedState) {
-            console.log(`상태 업데이트: [${mappedState}] ${message}`);
-            agentStates.set(sessionId, { state: mappedState, message, timestamp: Date.now() });
-
-            if (mainWindow && !mainWindow.isDestroyed()) {
-              mainWindow.webContents.send('agent-state-update', { sessionId, state: mappedState, message });
-            }
-          }
-
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: true }));
-        } catch (error) {
-          console.error('데이터 파싱 오류:', error.message);
-          res.writeHead(200); res.end();
-        }
-      });
-    } else if (req.method === 'GET' && parsedUrl.pathname === '/agent/states') {
-      const states = Array.from(agentStates.entries()).map(([sessionId, data]) => ({
-        sessionId,
-        ...data
-      }));
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(states));
-    } else if (req.method === 'GET' && parsedUrl.pathname === '/health') {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ status: 'ok', port }));
-    } else {
-      res.writeHead(404);
-      res.end();
-    }
-  });
-
-  httpServer.listen(port, 'localhost');
-  return port;
-}
 
 // 윈도우 생성
 function createWindow() {
@@ -115,7 +20,6 @@ function createWindow() {
     frame: false,
     alwaysOnTop: true,
     skipTaskbar: true,
-    titleBarStyle: 'hidden',
     resizable: false,
     movable: true,
     webPreferences: {
@@ -127,6 +31,9 @@ function createWindow() {
 
   mainWindow.loadFile('index.html');
 
+  // 서버 모듈에 메인 윈도우 전달
+  server.setMainWindow(mainWindow);
+
   // 태스크바 위로 올리기 (최상단 레벨)
   mainWindow.setAlwaysOnTop(true, 'screen-saver');
 }
@@ -134,7 +41,7 @@ function createWindow() {
 // Claude CLI 훅 자동 등록
 function registerHooks() {
   const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
-  const serverUrl = "http://localhost:3456/agent/status";
+  const serverUrl = `http://localhost:${server.getServerPort()}/agent/status`;
 
   try {
     if (!fs.existsSync(settingsPath)) return;
@@ -189,8 +96,8 @@ function registerHooks() {
 app.disableHardwareAcceleration(); // GPU 가속 비활성화
 
 app.whenReady().then(async () => {
-  const port = await createHttpServer();
-  console.log(`Pixel Agent Desk started - HTTP Server on port ${port}`);
+  httpServer = await server.createHttpServer();
+  console.log(`Pixel Agent Desk started - HTTP Server on port ${server.getServerPort()}`);
 
   createWindow();
   registerHooks();
@@ -218,6 +125,14 @@ app.on('before-quit', () => {
   }
 });
 
+// 상태 조회 공통 함수
+function getAgentStates() {
+  return Array.from(agentStates.entries()).map(([sessionId, data]) => ({
+    sessionId,
+    ...data
+  }));
+}
+
 // IPC 핸들러
 ipcMain.on('get-work-area', (event) => {
   const workArea = screen.getPrimaryDisplay().workArea;
@@ -241,9 +156,6 @@ ipcMain.on('constrain-window', (event, bounds) => {
 });
 
 ipcMain.on('get-state', (event) => {
-  const state = Array.from(agentStates.entries()).map(([sessionId, data]) => ({
-    sessionId,
-    ...data
-  }));
+  const state = server.getAgentStates();
   event.reply('state-response', state);
 });
