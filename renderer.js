@@ -1,180 +1,129 @@
 /**
  * Pixel Agent Desk Renderer
- * 캐릭터 애니메이션 및 상태 표시
+ * 프레임 기반 2D 스프라이트 애니메이션 구조화
  */
 
 const container = document.getElementById('container');
+const character = document.getElementById('character');
 const speechBubble = document.getElementById('speech-bubble');
 
-// 워킹 시간 관련 변수
-let workingStartTime = null;
-let workingTimer = null;
-let isWorkingState = false;
-let finalWorkingTime = null; // 최종 워킹 시간 저장
-
-// 상태 설정 통합 (클래스 + 라벨)
-const stateConfig = {
-  'Start': { class: 'state-start', label: 'Starting...' },
-  'UserPromptSubmit': { class: 'state-thinking', label: 'Working...' },
-  'PostToolUse': { class: 'state-thinking', label: 'Working...' },
-  'PreToolUse': { class: 'state-working', label: 'Working...' },
-  'Stop': { class: 'state-complete', label: 'Done!' },
-  'Error': { class: 'state-error', label: 'Error!' },
-  'Notification': { class: 'state-alert', label: 'Notification' },
-  'Idle': { class: 'state-Idle', label: 'Idle' },
-  'Thinking': { class: 'state-thinking', label: 'Working...' },
-  'Working': { class: 'state-working', label: 'Working...' },
-  'Complete': { class: 'state-complete', label: 'Complete!' },
-  'Alert': { class: 'state-alert', label: 'Alert!' }
+// --- 스프라이트 시트 설정 ---
+const SHEET = {
+  cols: 9,        // 가로 프레임 수
+  width: 48,      // 프레임 너비
+  height: 64      // 프레임 높이
 };
 
-// 상태 업데이트
-function updateState(state, message) {
-  Logger.debug(`상태 업데이트: ${state} -> ${stateConfig[state]?.label}`);
+// --- 애니메이션 시퀀스 정의 ---
+const ANIM_SEQUENCES = {
+  working: { frames: [1, 2, 3, 4], fps: 8, loop: true },
+  complete: { frames: [20, 21, 22, 23, 24, 25, 26, 27], fps: 6, loop: true },
+  waiting: { frames: [32], fps: 1, loop: true },
+  alert: { frames: [0, 31], fps: 4, loop: true }
+};
 
-  // 워킹 상태 체크 (UserPromptSubmit, PreToolUse, PostToolUse, Thinking, Working)
-  const workingStates = ['UserPromptSubmit', 'PreToolUse', 'PostToolUse', 'Thinking', 'Working'];
-  if (workingStates.includes(state)) {
-    if (!workingStartTime) {
-      workingStartTime = Date.now();
-      isWorkingState = true;
-      startWorkingTimer();
-      // 워킹 상태 시작 시 첫 텍스트 설정
-      speechBubble.textContent = 'Working...';
-      Logger.debug('워킹 상태 시작');
-    }
-  } else {
-    // 워킹 상태가 끝날 때 최종 시간 저장
-    if (isWorkingState && workingStartTime) {
-      finalWorkingTime = Math.floor((Date.now() - workingStartTime) / 1000);
-      Logger.debug(`워킹 완료: ${finalWorkingTime}초`);
-    }
-    stopWorkingTimer();
-    workingStartTime = null;
-    isWorkingState = false;
-  }
+// --- 상태별 맵핑 (최적화 및 통합) ---
+const stateConfig = {
+  'SessionStart': { anim: 'waiting', class: 'state-waiting', label: 'Waiting...' },
+  'UserPromptSubmit': { anim: 'working', class: 'state-working', label: 'Working...' },
+  'PreToolUse': { anim: 'working', class: 'state-working', label: 'Working...' },
+  'PostToolUse': { anim: 'working', class: 'state-working', label: 'Working...' },
+  'Stop': { anim: 'complete', class: 'state-complete', label: 'Done!' },
+  'Notification': { anim: 'alert', class: 'state-alert', label: 'Alert!' },
+  'Idle': { anim: 'waiting', class: 'state-waiting', label: 'Waiting...' },
+  // 시스템 내부 호환용
+  'Thinking': { anim: 'working', class: 'state-working', label: 'Working...' },
+  'Working': { anim: 'working', class: 'state-working', label: 'Working...' },
+  'Complete': { anim: 'complete', class: 'state-complete', label: 'Done!' },
+  'Alert': { anim: 'alert', class: 'state-alert', label: 'Alert!' }
+};
 
-  // 이전 상태 클래스 제거
-  container.className = 'container';
-
-  // 새로운 상태 클래스 추가
-  const config = stateConfig[state] || stateConfig['Complete'];
-  container.classList.add(config.class);
-  Logger.debug(`클래스 변경: ${config.class}`);
-
-  // Done 상태일 때 최종 시간 표시
-  if (state === 'Stop' || state === 'Complete') {
-    if (finalWorkingTime && finalWorkingTime > 0) {
-      speechBubble.textContent = `Done! (${formatWorkingTime(finalWorkingTime)})`;
-      Logger.info('최종 워킹 시간:', finalWorkingTime);
-    } else {
-      speechBubble.textContent = 'Done!';
-    }
-  } else if (!isWorkingState) {
-    // 워킹 상태가 아닌 다른 상태일 때
-    speechBubble.textContent = config.label;
-    Logger.debug(`라벨 표시: ${config.label}`);
-  }
-}
-
-// 워킹 타이머 시작
-function startWorkingTimer() {
-  workingTimer = setInterval(() => {
-    if (workingStartTime && isWorkingState) {
-      const elapsed = Date.now() - workingStartTime;
-      const seconds = Math.floor(elapsed / 1000);
-      const timeText = formatWorkingTime(seconds);
-      speechBubble.textContent = `Working... ${timeText}`;
-    }
-  }, 1000);
-  Logger.debug('타이머 시작');
-}
-
-// 워킹 타이머 중지
-function stopWorkingTimer() {
-  if (workingTimer) {
-    clearInterval(workingTimer);
-    workingTimer = null;
-    Logger.debug('타이머 중지');
-  }
-}
-
-// 워킹 시간 포맷팅
-function formatWorkingTime(seconds) {
-  if (seconds === 0) {
-    return '';
-  } else if (seconds < 10) {
-    return `${seconds}초`;
-  } else if (seconds < 60) {
-    return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
-  } else {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-  }
-}
-
-// IPC로 상태 업데이트 수신
-if (window.electronAPI) {
-  window.electronAPI.onStateUpdate((data) => {
-    const { state, message } = data;
-    updateState(state, message);
-  });
-}
-
-// 백그라운드에서 애니메이션 일시 정지
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    document.body.classList.add('paused');
-  } else {
-    document.body.classList.remove('paused');
-  }
-});
+let currentAnimName = null;
+let animInterval = null;
+let currentFrameIdx = 0;
 
 /**
- * 콘솔 로깅 및 에러 처리
+ * 프레임 인덱스를 background-position으로 변환하여 적용
  */
-const Logger = {
-  debug: (...args) => console.log('[DEBUG]', ...args),
-  error: (...args) => console.error('[ERROR]', ...args),
-  warn: (...args) => console.warn('[WARN]', ...args)
-};
+function drawFrame(frameIndex) {
+  if (!character) return;
+  const col = frameIndex % SHEET.cols;
+  const row = Math.floor(frameIndex / SHEET.cols);
 
-// 요소 유효성 검사
-function validateElement(element, name) {
-  if (!element) {
-    Logger.error(`${name} 요소를 찾을 수 없습니다!`);
-    return false;
-  }
-  return true;
+  const x = col * -SHEET.width;
+  const y = row * -SHEET.height;
+
+  character.style.backgroundPosition = `${x}px ${y}px`;
 }
 
-// 콘솔 로그: 에러 확인용
-const characterElement = document.getElementById('character');
-Logger.debug('Renderer.js 로드됨');
-Logger.debug('speechBubble 요소:', speechBubble);
-Logger.debug('character 요소:', characterElement);
-Logger.debug('container 요소:', container);
+/**
+ * 애니메이션 재생 엔진
+ */
+function playAnimation(animName) {
+  const sequence = ANIM_SEQUENCES[animName];
+  if (!sequence || currentAnimName === animName) return;
 
-if (!validateElement(speechBubble, 'speechBubble')) {
-  if (!validateElement(characterElement, 'character')) {
-    // 캐릭터 요소가 없으면 에러
-  }
-}
+  // 이전 타이머 정리
+  if (animInterval) clearInterval(animInterval);
 
-// 말풍선 클릭 시 터미널 포커스 요청
-if (speechBubble) {
-  speechBubble.addEventListener('click', () => {
-    if (window.electronAPI) {
-      console.log('[DEBUG] 말풍선 클릭 - 터미널 포커스 요청');
-      window.electronAPI.focusTerminal();
+  currentAnimName = animName;
+  currentFrameIdx = 0;
+
+  // 첫 프레임 즉시 실행
+  drawFrame(sequence.frames[0]);
+
+  // 프레임 루프 시작
+  animInterval = setInterval(() => {
+    currentFrameIdx++;
+
+    if (currentFrameIdx >= sequence.frames.length) {
+      if (sequence.loop) {
+        currentFrameIdx = 0;
+      } else {
+        clearInterval(animInterval);
+        return;
+      }
     }
-  });
-} else {
-  console.error('[ERROR] speechBubble 요소를 찾을 수 없습니다!');
+
+    drawFrame(sequence.frames[currentFrameIdx]);
+  }, 1000 / sequence.fps);
 }
 
-// 말풍선 클릭 가능하도록 스타일
-if (speechBubble) {
-  speechBubble.style.cursor = 'pointer';
+/**
+ * 상태 업데이트 (통합 인터페이스)
+ */
+function updateState(state, message) {
+  const config = stateConfig[state] || stateConfig['Stop'];
+
+  // 컨테이너 클래스 업데이트
+  if (container) container.className = 'container ' + config.class;
+
+  // 애니메이션 재생
+  playAnimation(config.anim);
+
+  // 말풍선 업데이트
+  if (speechBubble) speechBubble.textContent = message || config.label || state;
+
+  console.log(`[Renderer] State: ${state}, Anim: ${config.anim}`);
 }
+
+// IPC 수신
+if (window.electronAPI) {
+  window.electronAPI.onStateUpdate((data) => {
+    updateState(data.state, data.message);
+  });
+}
+
+// 초기 상태
+updateState('Idle');
+
+// 가시성 처리
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    if (animInterval) clearInterval(animInterval);
+  } else if (currentAnimName) {
+    const anim = currentAnimName;
+    currentAnimName = null; // 초기화 후 재시작 유도
+    playAnimation(anim);
+  }
+});

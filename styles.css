@@ -1,3 +1,5 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
 * {
   margin: 0;
   padding: 0;
@@ -40,12 +42,13 @@ body {
   /* 스프라이트 시트 설정 */
   background-image: url('avatar_00.png');
   background-size: 432px 256px;
+  /* 48 * 9컬럼, 64 * 4로우 */
   background-repeat: no-repeat;
 
   /* 픽셀 아트 렌더링 설정 */
+  image-rendering: -webkit-optimize-contrast;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
-  image-rendering: -webkit-optimize-contrast;
 
   /* 여백 완전 제거 */
   line-height: 0;
@@ -56,120 +59,28 @@ body {
   transform: translate3d(0, 0, 0);
 }
 
-/* 세로 프레임 (4~8) 애니메이션 */
-@keyframes sprite-thinking-row2 {
-  from { background-position: 0px -64px; }
-   to { background-position: -144px -64px; }
-}
-
-@keyframes sprite-working-row2 {
-  from { background-position: -192px -64px; }
-  to { background-position: -256px -64px; }
-}
-
-/* 스프라이트 프레임 애니메이션 */
-/* 프레임 계산: x = -((n % 9) * 48), y = -(Math.floor(n / 9) * 64) */
-
-/* Thinking: 프레임 0,1,2 순서대로 */
-@keyframes sprite-thinking {
-  from { background-position: 0px 0px; }
-  to { background-position: -96px 0px; }
-}
-
-/* Working: 프레임 3,4 순서대로 */
-@keyframes sprite-working {
-  from { background-position: -144px 0px; }
-  to { background-position: -192px 0px; }
-}
-
-/* Error: 프레임 5,6,7 순서대로 */
-@keyframes sprite-error {
-  from { background-position: -240px 0px; }
-  to { background-position: -336px 0px; }
-}
-
-/* Alert: 프레임 8,9 순서대로 */
-@keyframes sprite-alert {
-  from { background-position: -384px 0px; }
-  to { background-position: 0px -64px; }
-}
-
-/* Complete: 프레임 10,11,12 순서대로 */
-@keyframes sprite-complete {
-  from { background-position: -48px -64px; }
-  to { background-position: -144px -64px; }
-}
-
-/* Start: 프레임 13,14 순서대로 */
-@keyframes sprite-start {
-  from { background-position: -192px -64px; }
-  to { background-position: -240px -64px; }
-}
-
-/* Idle: 프레임 15,16,17 순서대로 */
-@keyframes sprite-idle {
-  from { background-position: -288px -64px; }
-  to { background-position: 0px -128px; }
-}
-
-/* 상태별 애니메이션 적용 (애니메이션 일시 disable) */
-.state-start .character {
-  /* animation: sprite-start 0.5s steps(2) forwards; */
-  background-position: -240px -64px; /* 고정 프레임 */
-}
-
-.state-thinking .character,
-.state-UserPromptSubmit .character,
-.state-PostToolUse .character {
-  /* animation: sprite-thinking-row2 3s infinite; */
-  background-position: 0 0; /* 고정 프레임 */
-}
-
-.state-working .character,
-.state-PreToolUse .character {
-  /* animation: sprite-working-row2 3s infinite; */
-  background-position: -192px -64px; /* 고정 프레임 */
-}
-
-.state-error .character {
-  /* animation: sprite-error 0.8s steps(3) infinite; */
-  background-position: -240px 0; /* 고정 프레임 */
-}
-
-.state-alert .character,
-.state-Notification .character {
-  /* animation: sprite-alert 0.3s steps(2) infinite; */
-  background-position: -384px 0; /* 고정 프레임 */
-}
-
-.state-complete .character,
-.state-Stop .character {
-  /* animation: sprite-complete 0.8s steps(3) infinite; */
-  background-position: -48px -64px; /* 고정 프레임 */
-}
-
-.state-Idle .character {
-  /* animation: sprite-idle 1.5s steps(3) infinite; */
-  background-position: -288px -64px; /* 고정 프레임 */
-}
-
-/* 백그라운드에서 애니메이션 일시 정지 */
+/* 백그라운드에서 애니메이션 일시 정지 (JS에서 제어될 예정이나 클래스는 유지) */
 .paused .character {
-  animation-play-state: paused;
+  opacity: 0.8;
 }
 
 /* 말풍선 */
 .speech-bubble {
   position: absolute;
-  bottom: calc(50% + 42px);
+  bottom: calc(50% + 40px);
+  /* 8px 꼬리 끝이 캐릭터 상단(32px)에 닿도록 설정 */
   left: 50%;
   transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.95);
   border: 2px solid #333;
   border-radius: 8px;
-  padding: 8px 12px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', 'Dotum', sans-serif;
+  padding: 4px 8px;
+  /* 패딩 2px씩 증가 */
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+  font-weight: 700;
+  /* 볼드 적용 */
   font-size: 12px;
+  /* 폰트 사이즈 1px 증가 */
   color: #333;
   max-width: 180px;
   text-align: center;
@@ -184,25 +95,26 @@ body {
 .speech-bubble::before {
   content: '';
   position: absolute;
-  bottom: -10px;
+  bottom: -8px;
+  /* 꼬리 길이 조정 */
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-top: 10px solid #333;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid #333;
 }
 
 .speech-bubble::after {
   content: '';
   position: absolute;
-  bottom: -6px;
+  bottom: -5px;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-top: 10px solid rgba(255, 255, 255, 0.95);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid rgba(255, 255, 255, 0.95);
 }
