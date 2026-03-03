@@ -174,24 +174,29 @@ body {
 }
 
 /* 상태별 색상 */
-.agent-bubble.is-working {
+.agent-bubble.is-working,
+.agent-card.state-working .agent-bubble {
   border-color: #ff9800;
 }
 
-.agent-bubble.is-waiting {
+.agent-bubble.is-waiting,
+.agent-card.state-waiting .agent-bubble {
   border-color: #9e9e9e;
 }
 
-.agent-bubble.is-complete {
+.agent-bubble.is-complete,
+.agent-card.state-complete .agent-bubble {
   border-color: #4caf50;
 }
 
-.agent-bubble.is-alert {
+.agent-bubble.is-alert,
+.agent-card.state-alert .agent-bubble {
   border-color: #f44336;
   color: #d32f2f;
 }
 
-.agent-bubble.is-offline {
+.agent-bubble.is-offline,
+.agent-card.state-offline .agent-bubble {
   border-color: #616161;
   color: #9e9e9e;
   opacity: 0.8;
@@ -272,7 +277,8 @@ body {
 
 
 /* 닫기 버튼 (X) - Hover 시 보임 */
-.agent-close-btn {
+.agent-close-btn,
+.agent-dismiss {
   position: absolute;
   top: 14px;
   right: -5px;
@@ -280,8 +286,9 @@ body {
   height: 16px;
   background: rgba(0, 0, 0, 0.6);
   color: white;
+  border: none;
   border-radius: 50%;
-  font-size: 10px;
+  font-size: 14px;
   font-weight: bold;
   display: flex;
   align-items: center;
@@ -291,13 +298,17 @@ body {
   transition: opacity 0.2s, background 0.2s;
   pointer-events: auto;
   z-index: 100;
+  padding: 0;
+  line-height: 1;
 }
 
-.agent-card:hover .agent-close-btn {
+.agent-card:hover .agent-close-btn,
+.agent-card:hover .agent-dismiss {
   opacity: 1;
 }
 
-.agent-close-btn:hover {
+.agent-close-btn:hover,
+.agent-dismiss:hover {
   background: #f44336;
 }
 
