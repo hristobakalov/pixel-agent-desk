@@ -158,6 +158,8 @@ function setupClaudeHooks() {
 // =====================================================
 // agentManager 준비 전에 도착한 SessionStart를 임시 보관
 const pendingSessionStarts = [];
+// 세션별 첫 PreToolUse 여부 추적 (초기화 탐색 무시용)
+const firstPreToolUseDone = new Map(); // sessionId → boolean
 
 function startHookServer() {
   const http = require('http');
@@ -192,25 +194,21 @@ function startHookServer() {
 
           case 'PreToolUse':
           case 'PostToolUse': {
-            // SessionStart 직후 5초는 초기화 구간으로 간주 → Working 전환 억제
-            // (Claude가 세션 시작 시 cwd 확인 등 내부 도구를 즉시 사용하기 때문)
-            const INIT_GRACE_MS = 5000;
-            if (agentManager) {
+            // 첫 PreToolUse는 Claude 세션 초기화(cwd 탐색 등)이므로 무시
+            // 두 번째부터는 사용자 요청에 의한 실제 도구 사용 → Working
+            if (!firstPreToolUseDone.has(sessionId)) {
+              firstPreToolUseDone.set(sessionId, true);
+              debugLog(`[Hook] ${event} ignored (first tool use = session init)`);
+            } else if (agentManager) {
               const agent = agentManager.getAgent(sessionId);
-              if (agent) {
-                const sinceStart = agent.firstSeen ? Date.now() - agent.firstSeen : Infinity;
-                if (sinceStart > INIT_GRACE_MS) {
-                  agentManager.updateAgent({ ...agent, sessionId, state: 'Working' }, 'hook');
-                } else {
-                  debugLog(`[Hook] ${event} ignored (init grace ${Math.round(sinceStart)}ms < ${INIT_GRACE_MS}ms)`);
-                }
-              }
+              if (agent) agentManager.updateAgent({ ...agent, sessionId, state: 'Working' }, 'hook');
             }
             break;
           }
 
           case 'TaskCompleted':
-            // AI 응답 완료 → Done
+            // AI 응답 완료 → Done, 다음 사용자 메시지를 위해 첫 PreToolUse 플래그 리셋
+            firstPreToolUseDone.delete(sessionId);
             if (agentManager) {
               const agent = agentManager.getAgent(sessionId);
               if (agent) agentManager.updateAgent({ ...agent, sessionId, state: 'Done' }, 'hook');
@@ -271,6 +269,7 @@ function handleSessionStart(sessionId, cwd) {
 }
 
 function handleSessionEnd(sessionId) {
+  firstPreToolUseDone.delete(sessionId); // 플래그 정리
   if (!agentManager) return;
   const agent = agentManager.getAgent(sessionId);
   if (agent) {
