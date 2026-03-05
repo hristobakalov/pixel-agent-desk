@@ -521,15 +521,23 @@ function startHookServer() {
   // P1-3: JSON Schema for hook validation
   const hookSchema = {
     type: 'object',
-    required: ['event'],
+    required: ['hook_event_name'],
     properties: {
-      event: {
+      hook_event_name: {
         type: 'string',
-        enum: ['SessionStart', 'SessionEnd', 'PreToolUse', 'PostToolUse', 'TaskCompleted', 'PermissionRequest', 'SubagentStart', 'SubagentStop']
+        enum: [
+          'SessionStart', 'SessionEnd', 'UserPromptSubmit',
+          'PreToolUse', 'PostToolUse', 'PostToolUseFailure',
+          'Stop', 'TaskCompleted', 'PermissionRequest', 'Notification',
+          'SubagentStart', 'SubagentStop', 'TeammateIdle',
+          'ConfigChange', 'WorktreeCreate', 'WorktreeRemove', 'PreCompact'
+        ]
+      },
+      session_id: {
+        type: 'string'
       },
       sessionId: {
-        type: 'string',
-        minLength: 1
+        type: 'string'
       },
       cwd: {
         type: 'string'
@@ -713,6 +721,66 @@ function recoverExistingSessions() {
 // =====================================================
 const sessionPids = new Map(); // sessionId → 실제 claude 프로세스 PID
 
+/**
+ * 세션이 활성 상태인지 확인하고 필요시 에이전트를 재생성합니다.
+ * @param {string} sessionId - 세션 ID
+ * @param {number} pid - 프로세스 ID
+ * @returns {Promise<boolean>} 세션이 활성 상태이면 true
+ */
+async function checkSessionActiveAndRecreate(sessionId, pid) {
+  try {
+    // PowerShell을 사용하여 프로세스가 실제로 실행 중인지 확인
+    const ps = require('child_process').spawnSync(
+      'powershell.exe',
+      [
+        '-NoProfile',
+        '-Command',
+        `$proc = Get-Process -Id ${pid} -ErrorAction SilentlyContinue; ` +
+        `if ($proc) { 'true' } else { 'false' }`
+      ],
+      { encoding: 'utf8', timeout: 5000 }
+    );
+
+    const isActive = ps.stdout.trim() === 'true';
+
+    if (!isActive) {
+      // 프로세스가 존재하지 않으면 부모 프로세스 확인
+      const psParent = require('child_process').spawnSync(
+        'powershell.exe',
+        [
+          '-NoProfile',
+          '-Command',
+          `$proc = Get-Process -Id ${pid} -ErrorAction SilentlyContinue; ` +
+          `if ($proc) { $proc.Parent.Id } else { '' }`
+        ],
+        { encoding: 'utf8', timeout: 5000 }
+      );
+
+      const parentId = psParent.stdout.trim();
+      if (parentId) {
+        // 부모 프로세스 확인
+        const psParentCheck = require('child_process').spawnSync(
+          'powershell.exe',
+          [
+            '-NoProfile',
+            '-Command',
+            `$parent = Get-Process -Id ${parentId} -ErrorAction SilentlyContinue; ` +
+            `if ($parent) { 'true' } else { 'false' }`
+          ],
+          { encoding: 'utf8', timeout: 5000 }
+        );
+
+        return psParentCheck.stdout.trim() === 'true';
+      }
+    }
+
+    return isActive;
+  } catch (error) {
+    debugLog(`[Live] Failed to check session activity for ${sessionId.slice(0, 8)}: ${error.message}`);
+    return false; // 오류 발생시 비활성으로 처리하여 제거되도록 함
+  }
+}
+
 function startLivenessChecker() {
   const INTERVAL = 3000;   // 3초
   const GRACE_MS = 15000;  // 등록 후 15초는 스킵 (WMI 조회 완료 전 유예)
@@ -768,10 +836,33 @@ function startLivenessChecker() {
             // 일단은 자식이 있는 동안은 삭제를 보류
             debugLog(`[Live] ${agent.id.slice(0, 8)} pid=${pid} DEAD but keeps for active sub-agents`);
           } else {
-            debugLog(`[Live] ${agent.id.slice(0, 8)} pid=${pid} DEAD → removing`);
-            missCount.delete(agent.id);
-            sessionPids.delete(agent.id);
-            agentManager.removeAgent(agent.id);
+            // DEAD 판정: 세션 활성 상태 확인 후 재생성 시도
+            debugLog(`[Live] ${agent.id.slice(0, 8)} pid=${pid} DEAD → checking session activity`);
+
+            // 세션 활성 상태 확인 (WMI 쿼리)
+            checkSessionActiveAndRecreate(agent.id, pid)
+              .then(isActive => {
+                if (isActive) {
+                  debugLog(`[Live] ${agent.id.slice(0, 8)} session is active, recreating agent`);
+                  // 세션이 활성 상태면 missCount 리셋하고 상태 유지
+                  missCount.delete(agent.id);
+                  if (agent.state === 'Offline') {
+                    agentManager.updateAgent({ ...agent, state: 'Waiting' }, 'live-recreate');
+                  }
+                } else {
+                  debugLog(`[Live] ${agent.id.slice(0, 8)} session is inactive, removing agent`);
+                  missCount.delete(agent.id);
+                  sessionPids.delete(agent.id);
+                  agentManager.removeAgent(agent.id);
+                }
+              })
+              .catch(err => {
+                debugLog(`[Live] ${agent.id.slice(0, 8)} failed to check session activity: ${err.message}`);
+                // 확인 실패시 기존 동작: 제거
+                missCount.delete(agent.id);
+                sessionPids.delete(agent.id);
+                agentManager.removeAgent(agent.id);
+              });
           }
         } else if (n > 1) {
           debugLog(`[Live] ${agent.id.slice(0, 8)} pid=${pid} miss ${n}/${MAX_MISS}`);
