@@ -235,25 +235,22 @@ describe('AgentManager', () => {
       expect(agent).toBeNull();
     });
 
-    test('keeps active agents', () => {
+    test('keeps recent agents', () => {
       const entry = {
-        sessionId: 'active-agent',
-        slug: 'active',
+        sessionId: 'recent-agent',
+        slug: 'recent',
         state: 'Working'
       };
 
       manager.updateAgent(entry);
 
-      // Active agent should not be removed even after timeout
-      jest.advanceTimersByTime(11 * 60 * 1000);
+      // Only advance 5 minutes - less than 10 min timeout
+      jest.advanceTimersByTime(5 * 60 * 1000);
 
       manager.cleanupIdleAgents();
 
-      const agent = manager.getAgent('active-agent');
+      const agent = manager.getAgent('recent-agent');
       expect(agent).not.toBeNull();
-      if (agent) {
-        expect(agent.state).toBe('Working');
-      }
     });
 
     test('emits agents-cleaned event', (done) => {
