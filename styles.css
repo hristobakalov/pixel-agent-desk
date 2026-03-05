@@ -10,8 +10,9 @@
 body {
   background: transparent;
   display: flex;
-  justify-content: center;
-  align-items: flex-end;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
   /* 말풍선 크기 증가 시 캐릭터가 밑으로 밀리는 현상 방지. 아래쪽으로 정렬 */
   overflow: hidden !important;
   -webkit-app-region: no-drag;
@@ -55,6 +56,8 @@ html {
   justify-content: center;
   align-items: end;
   padding: 10px;
+  margin-top: 50px;
+  /* 버튼과 겹침 방지 여백 */
   width: fit-content;
   max-width: 100%;
 }
@@ -263,17 +266,17 @@ html {
   border: 1px solid #4a7cb0;
 }
 
-/* 타입별 카드 하이라이트 (선택사항: 외곽선으로 구분) */
+/* 타입별 카드 하이라이트 (제거 - 선 생김 방지) */
 .agent-card.type-main {
-  border-color: rgba(233, 30, 99, 0.2);
+  border: none;
 }
 
 .agent-card.type-sub {
-  border-color: rgba(156, 39, 176, 0.2);
+  border: none;
 }
 
 .agent-card.type-team {
-  border-color: rgba(33, 150, 243, 0.2);
+  border: none;
 }
 
 /* 프로젝트가 바뀌는 지점에 마진 추가 (물리적 그룹 분리) */
@@ -617,8 +620,10 @@ html {
 ════════════════════════════════════════ */
 /* 파티(메인+서브/팀) 그룹단위 래퍼 (배경용 격자 박스) */
 .agent-party-bg {
-  background-color: rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: none;
+  /* 하단 선 생김 방지 */
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   z-index: -1;
@@ -631,32 +636,33 @@ html {
    Web Dashboard Button (Mission Control)
 ═════════════════════════════════════════ */
 .web-dashboard-btn {
-  position: fixed;
+  position: absolute;
+  /* fixed 대신 absolute로 상단 고정 */
   top: 10px;
   left: 10px;
   z-index: 10000;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(30, 30, 30, 0.85);
+  /* 좀 더 명확한 배경 */
   color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
-  padding: 6px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  /* 더 둥글게 */
+  padding: 5px 15px;
   font-family: 'Pretendard Variable', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
   pointer-events: auto;
   text-align: center;
-  line-height: 1.4;
-  min-width: 100px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .web-dashboard-btn:hover {
-  background: rgba(33, 150, 243, 0.85);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: #2196f3;
+  border-color: #64b5f6;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .web-dashboard-btn:active {
