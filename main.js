@@ -127,6 +127,73 @@ function registerClaudeHooks() {
   return false;
 }
 
+/**
+ * 대시보드 서버 시작
+ */
+function startDashboardServer() {
+  if (dashboardServer) {
+    debugLog('[Dashboard] 서버가 이미 실행 중입니다.');
+    return;
+  }
+
+  debugLog('[Dashboard] 서버 시작 중...');
+
+  try {
+    const server = require('./dashboard-server');
+
+    // AgentManager와 SessionScanner 연결
+    if (agentManager) {
+      server.setAgentManager(agentManager);
+    }
+    if (sessionScanner) {
+      server.setSessionScanner(sessionScanner);
+    }
+
+    // 서버 시작
+    const httpServer = server.startServer();
+    dashboardServer = httpServer;
+
+    debugLog('[Dashboard] ✅ 서버 시작 완료 (port 3000)');
+    console.log('\n✅ 대시보드 서버가 시작되었습니다.');
+    console.log('📊 http://localhost:3000 에서 접속 가능합니다.\n');
+
+    // AgentManager와 SessionScanner 연결
+    if (agentManager) {
+      dashboardServer.setAgentManager(agentManager);
+    }
+    if (sessionScanner) {
+      dashboardServer.setSessionScanner(sessionScanner);
+    }
+
+    // 서버 시작
+    const server = dashboardServer.startServer();
+    dashboardServerProcess = server;
+
+    debugLog('[Dashboard] ✅ 서버 시작 완료 (port 3000)');
+    console.log('\n✅ 대시보드 서버가 시작되었습니다.');
+    console.log('📊 http://localhost:3000 에서 접속 가능합니다.\n');
+  } catch (error) {
+    debugLog(`[Dashboard] ❌ 시작 실패: ${error.message}`);
+  }
+}
+
+/**
+ * 대시보드 서버 정리
+ */
+function stopDashboardServer() {
+  if (dashboardServer) {
+    debugLog('[Dashboard] 서버 정리 중...');
+    try {
+      dashboardServer.close(() => {
+        debugLog('[Dashboard] 서버 정리 완료');
+      });
+    } catch (error) {
+      debugLog(`[Dashboard] 정리 중 오류: ${error.message}`);
+    }
+    dashboardServer = null;
+  }
+}
+
 // 에러 로그 파일로 저장
 const errorLogPath = path.join(__dirname, 'startup-error.log');
 const originalConsoleError = console.error;
@@ -178,6 +245,7 @@ let mainWindow;
 let agentManager = null;
 let sessionScanner = null;  // Task 3A-4
 let keepAliveInterval = null;
+let dashboardServer = null;  // Dashboard 서버 인스턴스
 
 function resizeWindowForAgents(agentsOrCount) {
   if (!mainWindow || mainWindow.isDestroyed()) return;
@@ -1082,7 +1150,7 @@ app.whenReady().then(() => {
 
   // 2. 백그라운드 서비스 시작
   startHookServer();       // HTTP 훅 서버 (47821 포트)
-  // setupClaudeHooks();   // settings.json 훅 자동 등록 (사용 안 함)
+  startDashboardServer();  // 대시보드 웹 서버 (3000 포트)
   startLivenessChecker();  // 프로세스 생사 확인
 
   // 3. 앱 재시작 시 기존 활성 세션 복구 시작
@@ -1201,6 +1269,7 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   if (agentManager) agentManager.stop();
+  stopDashboardServer(); // 대시보드 서버 정리
   stopKeepAlive(); // 앱 종료 시 interval 정리
 
   // 모든 Map 리소스 정리
