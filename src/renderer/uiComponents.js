@@ -61,19 +61,6 @@ function setupKeyboardShortcuts() {
       }
     }
 
-    // Ctrl/Cmd + W: Close focused/selected agent
-    if ((e.ctrlKey || e.metaKey) && e.key === 'w') {
-      e.preventDefault();
-      const focusedAgent = document.querySelector('.agent-card[tabindex="0"]:focus') ||
-                           document.querySelector('.agent-card:focus');
-      if (focusedAgent) {
-        const agentId = focusedAgent.dataset.agentId;
-        if (agentId && window.electronAPI && window.electronAPI.dismissAgent) {
-          window.electronAPI.dismissAgent(agentId);
-        }
-      }
-    }
-
     // Tab: Navigate between agents
     if (e.key === 'Tab' && !e.ctrlKey && !e.metaKey && !e.altKey) {
       const agents = Array.from(document.querySelectorAll('.agent-card'));
@@ -164,12 +151,6 @@ function setupContextMenu() {
         <span class="menu-label">Focus Terminal</span>
         <span class="menu-shortcut">Enter</span>
       </div>
-      <div class="context-menu-divider"></div>
-      <div class="context-menu-item" data-action="close" class="danger">
-        <span class="menu-icon">✕</span>
-        <span class="menu-label">Close Agent</span>
-        <span class="menu-shortcut">Ctrl+W</span>
-      </div>
     `;
 
     menu.style.left = `${e.clientX}px`;
@@ -177,21 +158,11 @@ function setupContextMenu() {
 
     menu.querySelectorAll('.context-menu-item').forEach(item => {
       item.addEventListener('click', () => {
-        const action = item.dataset.action;
-
-        switch (action) {
-          case 'focus':
-            if (window.electronAPI && window.electronAPI.focusTerminal) {
-              window.electronAPI.focusTerminal(agentId);
-            }
-            break;
-          case 'close':
-            if (window.electronAPI && window.electronAPI.dismissAgent) {
-              window.electronAPI.dismissAgent(agentId);
-            }
-            break;
+        if (item.dataset.action === 'focus') {
+          if (window.electronAPI && window.electronAPI.focusTerminal) {
+            window.electronAPI.focusTerminal(agentId);
+          }
         }
-
         menu.remove();
       });
     });

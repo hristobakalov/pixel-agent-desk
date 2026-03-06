@@ -88,12 +88,6 @@ function registerIpcHandlers({ agentManager, sessionPids, windowManager, debugLo
   ipcMain.on('get-all-agents', (event) => event.reply('all-agents-response', agentManager?.getAllAgents() ?? []));
   ipcMain.on('get-agent-stats', (event) => event.reply('agent-stats-response', agentManager?.getStats() ?? {}));
 
-  ipcMain.on('dismiss-agent', (event, agentId) => {
-    if (agentManager) {
-      agentManager.dismissAgent(agentId);
-    }
-  });
-
   ipcMain.handle('focus-terminal', async (event, agentId) => {
     const pid = sessionPids.get(agentId);
     if (!pid) {
@@ -176,13 +170,6 @@ function registerIpcHandlers({ agentManager, sessionPids, windowManager, debugLo
     }
     debugLog(`[Dashboard] Focus requested for agent=${agentId.slice(0, 8)} pid=${pid}`);
     focusTerminalByPid(pid, 'Dashboard', debugLog);
-  });
-
-  ipcMain.on('dashboard-dismiss-agent', (event, agentId) => {
-    debugLog(`[MissionControl] Dismiss requested for agent: ${agentId.slice(0, 8)}`);
-    if (agentManager) {
-      agentManager.dismissAgent(agentId);
-    }
   });
 
   ipcMain.on('get-dashboard-agents', (event) => {

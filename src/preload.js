@@ -50,9 +50,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Terminal focus (on agent click) - uses actual PID via agentId, returns success/failure
   focusTerminal: (agentId) => ipcRenderer.invoke('focus-terminal', agentId),
 
-  // Manual agent dismissal (on X button click)
-  dismissAgent: (agentId) => ipcRenderer.send('dismiss-agent', agentId),
-
   // Mission Control Dashboard methods
   openWebDashboard: () => ipcRenderer.invoke('open-web-dashboard'),
   closeWebDashboard: () => ipcRenderer.invoke('close-web-dashboard'),

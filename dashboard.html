@@ -133,23 +133,6 @@
       border-radius: var(--radius-sm);
     }
 
-    .settings-btn {
-      background: none;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-sm);
-      padding: 6px 10px;
-      cursor: pointer;
-      font-size: 1rem;
-      color: var(--color-text-muted);
-      transition: all 0.2s ease;
-    }
-
-    .settings-btn:hover {
-      background: var(--color-card-hover);
-      color: var(--color-text);
-      border-color: var(--color-border-active);
-    }
-
     .connection-status {
       display: flex;
       align-items: center;
@@ -401,27 +384,6 @@
       border-color: var(--color-border-active);
       box-shadow: var(--shadow-md);
       transform: translateY(-2px);
-    }
-
-    .agent-dismiss-btn {
-      background: none;
-      border: none;
-      color: var(--color-text-muted);
-      cursor: pointer;
-      font-size: 0.75rem;
-      padding: 2px 5px;
-      border-radius: 3px;
-      opacity: 0;
-      transition: all 0.15s ease;
-    }
-
-    .agent-card:hover .agent-dismiss-btn {
-      opacity: 1;
-    }
-
-    .agent-dismiss-btn:hover {
-      background: rgba(239, 68, 68, 0.2);
-      color: #ef4444;
     }
 
     /* ── A3: Per-status glow effects ── */
@@ -976,91 +938,6 @@
       font-weight: 600;
     }
 
-    /* ─── Settings Modal ─── */
-    .settings-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.6);
-      z-index: 1000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .settings-overlay.open {
-      display: flex;
-    }
-
-    .settings-modal {
-      background: var(--color-card);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
-      padding: 24px;
-      width: 420px;
-      max-width: 90vw;
-      box-shadow: var(--shadow-lg);
-    }
-
-    .settings-modal h2 {
-      font-family: var(--font-body);
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--color-text);
-      margin-bottom: 20px;
-    }
-
-    .settings-group {
-      margin-bottom: 16px;
-    }
-
-    .settings-group label {
-      display: block;
-      font-family: var(--font-body);
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--color-text);
-      margin-bottom: 6px;
-    }
-
-    .settings-group .settings-desc {
-      font-size: 0.75rem;
-      color: var(--color-text-muted);
-      margin-bottom: 8px;
-      line-height: 1.6;
-    }
-
-    .settings-group select {
-      width: 100%;
-      padding: 8px 12px;
-      background: var(--color-bg);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-sm);
-      color: var(--color-text);
-      font-family: var(--font-body);
-      font-size: 0.85rem;
-    }
-
-    .settings-close {
-      margin-top: 16px;
-      width: 100%;
-      padding: 10px;
-      background: var(--color-primary);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius-sm);
-      font-family: var(--font-body);
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.2s ease;
-    }
-
-    .settings-close:hover {
-      opacity: 0.9;
-    }
   </style>
 </head>
 
@@ -1076,7 +953,6 @@
       </div>
       <div class="header-right">
         <span class="header-cost" id="headerCost">💰 $0.00</span>
-        <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
         <div class="connection-status" role="status" aria-live="polite">
           <span class="status-indicator" id="statusIndicator" aria-hidden="true"></span>
           <span id="connectionStatus">Connecting...</span>
@@ -1131,22 +1007,6 @@
 
   <!-- Heatmap Tooltip (global, position: fixed) -->
   <div class="heatmap-tooltip" id="heatmapTooltip"></div>
-
-  <!-- Settings Modal -->
-  <div class="settings-overlay" id="settingsOverlay">
-    <div class="settings-modal">
-      <h2>⚙️ Settings</h2>
-      <div class="settings-group">
-        <label for="autoHideTimeout">Auto-hide Timeout</label>
-        <div class="settings-desc">에이전트 비활성 후 아바타가 숨겨지는 시간. 재활동 시 자동 복원.</div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <input type="number" id="autoHideTimeout" min="2" max="86400" value="2" style="width:80px;padding:8px 12px;background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-sm);color:var(--color-text);font-family:var(--font-body);font-size:0.85rem;text-align:right;">
-          <span style="font-family:var(--font-body);font-size:0.85rem;color:var(--color-text-muted);">sec</span>
-        </div>
-      </div>
-      <button class="settings-close" onclick="closeSettings()">Close</button>
-    </div>
-  </div>
 
   <!-- Office modules (v2: avatar sync) -->
   <script src="/src/office/office-config.js?v=2"></script>
@@ -1556,10 +1416,7 @@
               <span>${agent.name || 'Agent'}</span>
               ${typeBadge}
             </div>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <div class="agent-status ${statusClass}" role="status" aria-label="Status: ${statusText}">${statusText}</div>
-              <button class="agent-dismiss-btn" onclick="dismissAgent('${agent.id}')" title="Hide agent">✕</button>
-            </div>
+            <div class="agent-status ${statusClass}" role="status" aria-label="Status: ${statusText}">${statusText}</div>
           </div>
           <div class="agent-body">
             <div class="agent-row">
@@ -2022,61 +1879,6 @@
     // Global access (called from onclick)
     window.changeHeatmapMetric = changeHeatmapMetric;
 
-    // ─── Settings ───
-
-    function loadSettings() {
-      try {
-        return JSON.parse(localStorage.getItem('pad-settings') || '{}');
-      } catch { return {}; }
-    }
-
-    function saveSettings(settings) {
-      localStorage.setItem('pad-settings', JSON.stringify(settings));
-    }
-
-    function openSettings() {
-      const overlay = document.getElementById('settingsOverlay');
-      if (overlay) overlay.classList.add('open');
-
-      const settings = loadSettings();
-      const input = document.getElementById('autoHideTimeout');
-      if (input) input.value = settings.autoHideTimeout || 300;
-    }
-
-    function closeSettings() {
-      const overlay = document.getElementById('settingsOverlay');
-      if (overlay) overlay.classList.remove('open');
-    }
-
-    function initSettings() {
-      const input = document.getElementById('autoHideTimeout');
-      if (input) {
-        input.addEventListener('input', () => {
-          const val = Math.max(2, Math.min(86400, parseInt(input.value, 10) || 2));
-          const settings = loadSettings();
-          settings.autoHideTimeout = val;
-          saveSettings(settings);
-        });
-      }
-
-      const overlay = document.getElementById('settingsOverlay');
-      if (overlay) {
-        overlay.addEventListener('click', (e) => {
-          if (e.target === overlay) closeSettings();
-        });
-      }
-    }
-
-    // Dismiss agent via REST API
-    function dismissAgent(agentId) {
-      fetch(`/api/agents/${agentId}/dismiss`, { method: 'POST' }).catch(() => {});
-    }
-
-    // Global access
-    window.openSettings = openSettings;
-    window.closeSettings = closeSettings;
-    window.dismissAgent = dismissAgent;
-
     /**
      * Initialize navigation
      */
@@ -2134,9 +1936,6 @@
 
       // Initialize navigation
       initNavigation();
-
-      // Initialize settings
-      initSettings();
 
       // Restore saved tab -- sync nav item active class
       const navItems = document.querySelectorAll('.nav-item');

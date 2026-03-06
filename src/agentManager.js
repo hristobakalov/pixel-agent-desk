@@ -216,11 +216,6 @@ class AgentManager extends EventEmitter {
   }
   getAgent(agentId) { return this.agents.get(agentId) || null; }
   getAgentCount() { return this.agents.size; }
-  dismissAgent(agentId) { return this.removeAgent(agentId); }
-
-  // Agent cleanup is handled exclusively by the main.js liveness checker (PID-based)
-  // cleanupIdleAgents removed — timer-based cleanup conflicts with PID checks
-
   getAgentsByActivity() {
     return this.getAllAgents().sort((a, b) => b.lastActivity - a.lastActivity);
   }

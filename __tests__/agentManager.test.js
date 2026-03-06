@@ -216,9 +216,6 @@ describe('AgentManager', () => {
     });
   });
 
-  // cleanupIdleAgents removed — agent cleanup is handled exclusively by main.js liveness checker (PID-based)
-  // Timer-based cleanup was removed because it could incorrectly kill agents whose PIDs are still alive
-
   describe('getAgentWithEffectiveState', () => {
     test('returns agent with effective state for parent with working children', () => {
       const parentEntry = { sessionId: 'parent-1', state: 'Done' };

@@ -316,21 +316,6 @@ function handleAPIRequest(req, res, url) {
     return;
   }
 
-  // ─── POST /api/agents/:id/dismiss — Manual agent removal (Task 3B-2) ───
-  if (pathname.match(/^\/api\/agents\/[^/]+\/dismiss$/) && req.method === 'POST') {
-    if (!agentManager) {
-      res.writeHead(503, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Agent manager not available' }));
-      return;
-    }
-    const parts = pathname.split('/');
-    const agentId = parts[3];
-    const removed = agentManager.dismissAgent(agentId);
-    res.writeHead(removed ? 200 : 404, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ ok: removed, agentId }));
-    return;
-  }
-
   // ─── GET /api/agents/:id ───
   if (pathname.startsWith('/api/agents/') && req.method === 'GET') {
     if (!agentManager) {

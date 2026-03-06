@@ -50,7 +50,4 @@ contextBridge.exposeInMainWorld('dashboardAPI', {
     ipcRenderer.send('dashboard-focus-agent', agentId);
   },
 
-  dismissAgent: (agentId) => {
-    ipcRenderer.send('dashboard-dismiss-agent', agentId);
-  }
 });
