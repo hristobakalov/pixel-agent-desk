@@ -3,7 +3,7 @@
  * Module initialization, event wiring, and app lifecycle management
  */
 
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -84,6 +84,32 @@ let hookProcessor = null;
 
 app.whenReady().then(() => {
   debugLog('========== Pixel Agent Desk started ==========');
+
+  // Minimal application menu (removes default File/Edit/Window/Help clutter)
+  const isDev = process.argv.includes('--dev');
+  const menuTemplate = [
+    {
+      label: 'View',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forceReload' },
+        ...(isDev ? [{ role: 'toggleDevTools' }] : []),
+        { type: 'separator' },
+        { role: 'resetZoom' },
+        { role: 'zoomIn' },
+        { role: 'zoomOut' },
+      ]
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'selectAll' },
+      ]
+    }
+  ];
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));
 
   // 0. Auto-register Claude CLI hooks
   registerClaudeHooks(debugLog);

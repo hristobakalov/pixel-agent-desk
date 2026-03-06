@@ -5,10 +5,13 @@ package-lock.json
 # Build outputs
 dist/
 build/
+out/
+release/
 
 # OS files
 .DS_Store
 Thumbs.db
+Desktop.ini
 *.log
 
 # IDE
@@ -16,17 +19,31 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+*.sublime-*
 
-# Debug/test files
+# Environment / secrets
+.env
+.env.*
+
+# Debug/test artifacts
 debug_payload.txt
 test.txt
 NUL
+nul
 
 # Test coverage
 coverage/
 
+# Docs (internal dev notes)
+docs/
+
+# Temp / backup files
+*.bak
+*.tmp
+*.orig
+
+# Claude Code local settings
+.claude/
+
 # Removed subproject (prevent re-creation)
 pixel_office/
-
-# Memory (if using auto memory)
-.claude/memory/

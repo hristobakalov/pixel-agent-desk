@@ -19,7 +19,7 @@
     "multi-agent",
     "jsonl"
   ],
-  "author": "",
+  "author": "geunilbae",
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^30.0.0",
