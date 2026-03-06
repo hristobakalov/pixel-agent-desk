@@ -63,6 +63,14 @@ function createWindowManager({ agentManager, sessionScanner, heatmapScanner, deb
       }
     });
 
+    // 메인 윈도우(아바타) 닫힘 → 대시보드도 닫고 앱 종료
+    mainWindow.on('closed', () => {
+      mainWindow = null;
+      closeDashboardWindow();
+      const { app } = require('electron');
+      app.quit();
+    });
+
     startKeepAlive();
   }
 
@@ -87,6 +95,9 @@ function createWindowManager({ agentManager, sessionScanner, heatmapScanner, deb
   function createDashboardWindow() {
     if (dashboardWindow && !dashboardWindow.isDestroyed()) {
       debugLog('[MissionControl] Window already open, focusing existing window');
+      if (dashboardWindow.isMinimized()) {
+        dashboardWindow.restore();
+      }
       dashboardWindow.focus();
       return { success: true, alreadyOpen: true };
     }
@@ -94,11 +105,11 @@ function createWindowManager({ agentManager, sessionScanner, heatmapScanner, deb
     try {
       const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
-      // 맵(864) + 사이드바(280) + 패딩(56) = 1200, 높이: 맵(800) + 헤더(60) + 패딩(40) = 900
+      // 맵(864) + 사이드바(280) + 패딩(56) = 1200, 높이: 화면 90% 활용
       const minDashW = 1200;
-      const minDashH = 900;
+      const minDashH = 1000;
       const dashW = Math.min(Math.max(minDashW, Math.floor(width * 0.7)), width - 40);
-      const dashH = Math.min(Math.max(minDashH, Math.floor(height * 0.8)), height - 40);
+      const dashH = Math.min(Math.max(minDashH, Math.floor(height * 0.9)), height - 40);
 
       dashboardWindow = new BrowserWindow({
         width: dashW,

@@ -164,14 +164,6 @@ function setupContextMenu() {
         <span class="menu-label">Focus Terminal</span>
         <span class="menu-shortcut">Enter</span>
       </div>
-      <div class="context-menu-item" data-action="logs">
-        <span class="menu-icon">📋</span>
-        <span class="menu-label">View Logs</span>
-      </div>
-      <div class="context-menu-item" data-action="timeline">
-        <span class="menu-icon">📊</span>
-        <span class="menu-label">View Timeline</span>
-      </div>
       <div class="context-menu-divider"></div>
       <div class="context-menu-item" data-action="close" class="danger">
         <span class="menu-icon">✕</span>
@@ -193,10 +185,6 @@ function setupContextMenu() {
               window.electronAPI.focusTerminal(agentId);
             }
             break;
-          case 'logs':
-            break;
-          case 'timeline':
-            break;
           case 'close':
             if (window.electronAPI && window.electronAPI.dismissAgent) {
               window.electronAPI.dismissAgent(agentId);
@@ -210,14 +198,13 @@ function setupContextMenu() {
 
     document.body.appendChild(menu);
 
-    setTimeout(() => {
-      document.addEventListener('click', function closeMenu(e) {
-        if (!menu.contains(e.target)) {
-          menu.remove();
-          document.removeEventListener('click', closeMenu);
-        }
-      });
-    }, 0);
+    const closeMenu = (e) => {
+      if (!document.body.contains(menu) || !menu.contains(e.target)) {
+        if (document.body.contains(menu)) menu.remove();
+        document.removeEventListener('click', closeMenu);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', closeMenu), 0);
   });
 
 }

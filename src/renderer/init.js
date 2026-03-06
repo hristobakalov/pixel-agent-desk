@@ -37,9 +37,11 @@ async function init() {
     startIdleAnimation();
   }
 
-  // Dashboard button
-  const dashboardBtn = createWebDashboardButton();
-  document.body.appendChild(dashboardBtn);
+  // Dashboard button — 아바타 바로 위에 배치 (toolbar 컨테이너)
+  const toolbar = document.createElement('div');
+  toolbar.className = 'avatar-toolbar';
+  toolbar.appendChild(createWebDashboardButton());
+  document.body.insertBefore(toolbar, document.getElementById('agent-grid'));
 
   // Register event listeners
   window.electronAPI.onAgentAdded(addAgent);

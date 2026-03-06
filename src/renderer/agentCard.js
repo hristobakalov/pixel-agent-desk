@@ -171,16 +171,13 @@ function createAgentCard(agent) {
   typeTag.title = agent.projectPath || '';
   card.appendChild(typeTag);
 
-  // 에이전트 이름
+  // 에이전트 이름 — slug 기반 이름만 표시 (프로젝트 폴더명은 생략)
   const nameBadge = document.createElement('div');
   nameBadge.className = 'agent-name';
-  nameBadge.textContent = agent.displayName || typeLabel;
-  nameBadge.title = agent.displayName;
-
-  const projectNameStr = agent.projectPath ? agent.projectPath.split(/[\\/]/).pop() : 'Default';
-  if (!agent.displayName || agent.displayName === projectNameStr || agent.displayName === 'Agent') {
-    nameBadge.style.display = 'none';
-  }
+  const hasSlugName = agent.slug && agent.displayName && agent.displayName !== 'Agent';
+  nameBadge.textContent = hasSlugName ? agent.displayName : '';
+  nameBadge.title = agent.projectPath || '';
+  if (!hasSlugName) nameBadge.style.display = 'none';
 
   // Timer element (사전 생성 — updateAgentState에서 동적 DOM 삽입 방지)
   const timerEl = document.createElement('div');
@@ -196,8 +193,8 @@ function createAgentCard(agent) {
   // 터미널 포커스 버튼
   const focusBtn = document.createElement('button');
   focusBtn.className = 'focus-terminal-btn';
-  focusBtn.textContent = '\u2318';
-  focusBtn.title = '터미널 포커스';
+  focusBtn.innerHTML = '<span class="focus-icon">&#xF0;</span>';
+  focusBtn.title = '터미널 포커스 (클릭하면 해당 터미널로 이동)';
   focusBtn.setAttribute('aria-label', `Focus terminal for ${agent.displayName || 'Agent'}`);
   focusBtn.onclick = async (e) => {
     e.stopPropagation();
