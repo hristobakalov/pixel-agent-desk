@@ -124,9 +124,9 @@ function createWindowManager({ agentManager, sessionScanner, heatmapScanner, deb
 
       // Map(864) + sidebar(240) + padding = 1104+, height: generous for pixel art
       const minDashW = 1280;
-      const minDashH = 900;
+      const minDashH = 980;
       const dashW = Math.min(Math.max(minDashW, Math.floor(width * 0.9)), width - 20);
-      const dashH = Math.min(Math.max(minDashH, Math.floor(height * 0.9)), height - 20);
+      const dashH = Math.min(Math.max(minDashH, Math.floor(height * 0.95)), height - 10);
 
       dashboardWindow = new BrowserWindow({
         width: dashW,
