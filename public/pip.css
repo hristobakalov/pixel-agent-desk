@@ -9,7 +9,67 @@ body {
   background: #050709;
   width: 100vw;
   height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Titlebar (always visible, drag region) ─── */
+.pip-titlebar {
   -webkit-app-region: drag;
+  height: 28px;
+  min-height: 28px;
+  background: #0d1117;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px 0 10px;
+}
+
+.pip-title-label {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.02em;
+}
+
+.pip-controls {
+  -webkit-app-region: no-drag;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.pip-ctrl-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s;
+}
+
+.pip-ctrl-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.pip-ctrl-close:hover {
+  background: rgba(248, 81, 73, 0.8);
+  color: #fff;
+}
+
+/* ─── Canvas ─── */
+.pip-canvas-wrap {
+  flex: 1;
+  overflow: hidden;
+  background: #050709;
 }
 
 #office-canvas {
@@ -18,61 +78,4 @@ body {
   height: 100%;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
-}
-
-/* ─── Hover Overlay ─── */
-.pip-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  pointer-events: none;
-  -webkit-app-region: no-drag;
-}
-
-body:hover .pip-overlay {
-  opacity: 1;
-}
-
-.pip-titlebar {
-  height: 32px;
-  background: linear-gradient(rgba(0, 0, 0, 0.7), transparent);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 8px 0 12px;
-  pointer-events: auto;
-}
-
-.pip-title-label {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
-  letter-spacing: 0.02em;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-.pip-close-btn {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 14px;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s;
-}
-
-.pip-close-btn:hover {
-  background: rgba(248, 81, 73, 0.8);
-  color: #fff;
 }

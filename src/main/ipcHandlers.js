@@ -171,6 +171,16 @@ function registerIpcHandlers({ agentManager, sessionPids, windowManager, debugLo
   ipcMain.on('pip-close', () => {
     windowManager.closePipWindow();
   });
+
+  ipcMain.on('pip-minimize', () => {
+    const pw = windowManager.pipWindow;
+    if (pw && !pw.isDestroyed()) pw.minimize();
+  });
+
+  ipcMain.on('pip-back-to-dashboard', () => {
+    windowManager.closePipWindow();
+    // Dashboard will restore canvas via pip-state-changed(false) sent by closePipWindow
+  });
 }
 
 module.exports = { registerIpcHandlers };

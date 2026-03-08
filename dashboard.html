@@ -109,6 +109,17 @@
               </div>
               <div class="panel-body">
                 <canvas id="office-canvas"></canvas>
+                <!-- PiP placeholder (shown when PiP window is open) -->
+                <div class="pip-placeholder" id="pipPlaceholder" style="display:none;">
+                  <div class="pip-placeholder-icon">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="2" y="4" width="28" height="22" rx="3"></rect>
+                      <rect x="16" y="14" width="12" height="10" rx="2" fill="currentColor" stroke="none"></rect>
+                    </svg>
+                  </div>
+                  <div class="pip-placeholder-text">PiP mode active</div>
+                  <button class="pip-placeholder-btn" id="pipExitBtn">Exit PiP</button>
+                </div>
               </div>
             </div>
 

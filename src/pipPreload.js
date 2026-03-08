@@ -6,5 +6,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('pipAPI', {
-  close: () => ipcRenderer.send('pip-close')
+  close: () => ipcRenderer.send('pip-close'),
+  minimize: () => ipcRenderer.send('pip-minimize'),
+  backToDashboard: () => ipcRenderer.send('pip-back-to-dashboard'),
 });

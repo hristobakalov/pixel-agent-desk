@@ -1,6 +1,6 @@
 /**
  * PiP Window Logic
- * SSE connection, agent sync, close button
+ * SSE connection, agent sync, window controls
  */
 
 (function () {
@@ -49,10 +49,20 @@
     }
   }
 
-  // ─── Close Button ───
+  // ─── Window Controls ───
+  const api = window.pipAPI;
+
+  document.getElementById('pipMinBtn').addEventListener('click', () => {
+    if (api && api.minimize) api.minimize();
+  });
+
+  document.getElementById('pipExpandBtn').addEventListener('click', () => {
+    if (api && api.backToDashboard) api.backToDashboard();
+  });
+
   document.getElementById('pipCloseBtn').addEventListener('click', () => {
-    if (window.pipAPI && typeof window.pipAPI.close === 'function') {
-      window.pipAPI.close();
+    if (api && api.close) {
+      api.close();
     } else {
       window.close();
     }

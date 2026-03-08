@@ -220,9 +220,14 @@ function createWindowManager({ agentManager, sessionScanner, heatmapScanner, deb
 
     pipWindow.loadURL('http://localhost:3000/pip');
 
+    // Notify dashboard: PiP opened → show placeholder
+    if (dashboardWindow && !dashboardWindow.isDestroyed()) {
+      dashboardWindow.webContents.send('pip-state-changed', true);
+    }
+
     pipWindow.on('closed', () => {
       pipWindow = null;
-      // Sync toggle button state in dashboard
+      // Notify dashboard: PiP closed → restore canvas
       if (dashboardWindow && !dashboardWindow.isDestroyed()) {
         dashboardWindow.webContents.send('pip-state-changed', false);
       }
