@@ -265,8 +265,10 @@ var officeCharacters = {
       } else if (char.agentState === 'error') {
         char.currentAnim = 'alert_jump';
       } else if (currentSpot && currentSpot.type === 'idle') {
-        // Idle zone: stand in last facing direction (not sitting pose)
-        char.currentAnim = (char.facingDir || 'down') + '_idle';
+        // Idle zone: sit based on seat config (stand only for animType:'stand' spots)
+        const idleConfig = getSeatConfig(currentSpot.id);
+        char.facingDir = idleConfig.dir;
+        char.currentAnim = idleConfig.animType === 'sit' ? 'sit_' + idleConfig.dir : idleConfig.dir + '_idle';
       } else {
         // Desk spot: use SEAT_MAP direction + sit/work pose
         const config = currentSpot ? getSeatConfig(currentSpot.id) : { dir: 'down', animType: 'sit' };

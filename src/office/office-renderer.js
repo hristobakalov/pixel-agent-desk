@@ -133,8 +133,8 @@ var officeRenderer = {
       drawOfficeSprite(ctx, agent);
       ctx.restore();
 
-      drawOfficeNameTag(ctx, agent, 0);
-      drawOfficeBubble(ctx, agent, 0);
+      drawOfficeNameTag(ctx, agent);
+      drawOfficeBubble(ctx, agent);
     }
 
     // 4. Foreground

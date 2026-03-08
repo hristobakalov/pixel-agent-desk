@@ -7,7 +7,7 @@
 
 var OFFICE_UI_BASE_Y = -66;
 
-function drawOfficeNameTag(ctx, agent, yOffset) {
+function drawOfficeNameTag(ctx, agent) {
   const baseX = Math.round(agent.x);
   const footY = Math.round(agent.y);
 
@@ -26,7 +26,7 @@ function drawOfficeNameTag(ctx, agent, yOffset) {
   const roleBoxW = tw + 16;
   const roleBoxH = 16;
   const roleBoxX = baseX - roleBoxW / 2;
-  const roleBoxY = footY + OFFICE_UI_BASE_Y - roleBoxH + (yOffset || 0);
+  const roleBoxY = footY + OFFICE_UI_BASE_Y - roleBoxH;
 
   // Role background
   ctx.fillStyle = 'rgba(15, 23, 42, 0.90)';
@@ -39,7 +39,7 @@ function drawOfficeNameTag(ctx, agent, yOffset) {
 
   // Role text
   ctx.fillStyle = '#f8fafc';
-  ctx.fillText(roleStr, baseX, footY + OFFICE_UI_BASE_Y - 3 + (yOffset || 0));
+  ctx.fillText(roleStr, baseX, footY + OFFICE_UI_BASE_Y - 3);
 
   // Status badge
   const state = agent.agentState || 'idle';
@@ -54,7 +54,7 @@ function drawOfficeNameTag(ctx, agent, yOffset) {
   const sBoxW = stateTw + paddingX * 2;
   const sBoxH = 15;
   const sBoxX = baseX - sBoxW / 2;
-  const sBoxY = roleBoxY - sBoxH - 5 + (yOffset || 0);
+  const sBoxY = roleBoxY - sBoxH - 5;
 
   ctx.beginPath();
   ctx.roundRect(sBoxX, sBoxY, sBoxW, sBoxH, sBoxH / 2);
@@ -67,7 +67,7 @@ function drawOfficeNameTag(ctx, agent, yOffset) {
   ctx.restore();
 }
 
-function drawOfficeBubble(ctx, agent, yOffset) {
+function drawOfficeBubble(ctx, agent) {
   const now = Date.now();
   const baseX = Math.round(agent.x);
   const bubbleY = Math.round(agent.y) + OFFICE_UI_BASE_Y - 45;
@@ -85,7 +85,7 @@ function drawOfficeBubble(ctx, agent, yOffset) {
     const boxW = tw + paddingH * 2;
     const boxH = 16 + paddingV * 2;
     const boxX = baseX - boxW / 2;
-    const boxY = bubbleY - boxH + (yOffset || 0);
+    const boxY = bubbleY - boxH;
 
     // Bubble background
     ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';

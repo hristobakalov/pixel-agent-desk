@@ -55,9 +55,7 @@ function drawOfficeSprite(ctx, agent) {
 }
 
 function isIdleAnim(key) {
-  return key.endsWith('_idle') ||
-    (key.startsWith('sit_') && !key.startsWith('sit_work_')) ||
-    key === 'dance';
+  return IDLE_ANIM_KEYS.has(key);
 }
 
 function tickOfficeAnimation(agent, deltaMs) {
