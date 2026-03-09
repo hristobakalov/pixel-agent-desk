@@ -55,6 +55,7 @@ coverage/
 # Claude Code local settings
 .claude/
 CLAUDE.md
+memory/
 
 # Electron build artifacts
 crash-reports/
