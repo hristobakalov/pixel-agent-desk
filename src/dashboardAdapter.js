@@ -38,7 +38,8 @@ function mapPixelStateToDashboardState(pixelState) {
  */
 function extractProjectName(projectPath) {
   if (!projectPath) return 'Default';
-  return path.basename(projectPath);
+  const normalized = projectPath.replace(/\\/g, '/');
+  return path.basename(normalized);
 }
 
 /**
