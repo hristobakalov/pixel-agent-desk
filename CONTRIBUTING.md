@@ -5,7 +5,7 @@ Thanks for your interest in contributing! This guide will help you get started.
 ## Development Setup
 
 ```bash
-git clone https://github.com/geunilbae/pixel-agent-desk.git
+git clone https://github.com/Mgpixelart/pixel-agent-desk.git
 cd pixel-agent-desk
 npm install
 npm start
@@ -23,7 +23,7 @@ npm run test:watch      # Watch mode for development
 
 ### Reporting Bugs
 
-- Open an issue on [GitHub Issues](https://github.com/geunilbae/pixel-agent-desk/issues)
+- Open an issue on [GitHub Issues](https://github.com/Mgpixelart/pixel-agent-desk/issues)
 - Include your OS, Node.js version, and Electron version
 - Describe the steps to reproduce the bug
 - Include any relevant error messages or logs
