@@ -6,6 +6,14 @@
  * Each loaded model becomes an agent. Activity is inferred by
  * watching the `expires_at` field: if it advances between polls
  * the model is actively serving requests.
+ *
+ * Architecture note — lifecycle deviation:
+ *   The CONTRIBUTING.md rule "Agent lifecycle is PID-based only" applies to
+ *   Claude Code agents, where each session maps to a single OS process.
+ *   Ollama hosts many models inside one server process, so per-agent PIDs
+ *   don't exist. Instead, lifecycle is driven by Ollama's /api/ps state:
+ *   agents appear when a model is loaded and disappear when it is unloaded
+ *   or Ollama goes offline. No manual dismiss or timer-based removal is used.
  */
 
 'use strict';

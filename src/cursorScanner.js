@@ -12,6 +12,15 @@
  *        - modified within ACTIVE_WINDOW → Working / Thinking
  *        - older but still today's session → Waiting
  *   4. When Cursor exits, all tracked agents are removed.
+ *
+ * Architecture note — lifecycle deviation:
+ *   The CONTRIBUTING.md rule "Agent lifecycle is PID-based only" applies to
+ *   Claude Code agents, where each session maps to a single OS process.
+ *   Cursor hosts many agent sessions inside one Electron process, so
+ *   per-session PIDs don't exist. Instead, lifecycle is process-based
+ *   (pgrep Cursor.app) combined with transcript file state. Agents are
+ *   removed only when Cursor exits or the session is superseded — no
+ *   manual dismiss or idle-timer removal is used.
  */
 
 'use strict';
